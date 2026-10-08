@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Caixa Eletrônico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .atm-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .saldo-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            color: #495057;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .erro {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .sucesso {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        ul {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="atm-container">
+        <h2>Caixa Eletrônico</h2>
+        
+        <div class="saldo-info">
+            Saldo Disponível no Caixa: R$ <span id="saldoCaixa">2500</span>.00
+        </div>
+
+        <div class="form-group">
+            <label for="valorSaque">Valor do Saque (R$):</label>
+            <input type="number" id="valorSaque" placeholder="Ex: 280" min="1">
+        </div>
+
+        <button onclick="realizarSaque()">Sacar</button>
+
+        <div id="resultado" class="resultado" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Saldo inicial simulado do caixa eletrônico
+        let saldoDisponivel = 2500;
+
+        function realizarSaque() {
+            const inputValor = document.getElementById('valorSaque').value;
+            const divResultado = document.getElementById('resultado');
+            
+            // Converter para número inteiro
+            let valor = parseInt(inputValor);
+
+            // 1. Validação de valores inválidos básicos
+            if (isNaN(valor) || valor <= 0) {
+                mostrarMensagem("Por favor, informe um valor de saque válido.", "erro");
+                return;
+            }
+
+            // 2. Verificação de saldo disponível no caixa
+            if (valor > saldoDisponivel) {
+                mostrarMensagem("Saldo insuficiente no caixa para realizar esta operação.", "erro");
+                return;
+            }
+
+            // 3. Validação de notas disponíveis (O menor valor é R$ 2, logo valores ímpares não são aceitos)
+            if (valor % 2 !== 0) {
+                mostrarMensagem("Valor inválido para saque. O caixa dispõe apenas de notas de R$ 100, R$ 50, R$ 20, R$ 10, R$ 5 e R$ 2. (Não é possível sacar valores ímpares).", "erro");
+                return;
+            }
+
+            // 4. Cálculo das notas
+            let notas = [100, 50, 20, 10, 5, 2];
+            let contagemNotas = {};
+            let valorRestante = valor;
+
+            for (let i = 0; i < notas.length; i++) {
+                let nota = notas[i];
+                let quantidade = Math.floor(valorRestante / nota);
+                
+                if (quantidade > 0) {
+                    contagemNotas[nota] = quantidade;
+                    valorRestante %= nota;
+                }
+            }
+
+            // Atualiza o saldo do caixa
+            saldoDisponivel -= valor;
+            document.getElementById('saldoCaixa').innerText = saldoDisponivel;
+
+            // Monta o texto de resultado
+            let htmlResultado = `<strong>Saque realizado com sucesso!</strong><br>Notas entregues:<ul>`;
+            for (let nota in contagemNotas) {
+                let qtd = contagemNotas[nota];
+                let textoNota = qtd > 1 ? `notas` : `nota`;
+                htmlResultado += `<li>${qtd} ${textoNota} de R$ ${nota}</li>`;
+            }
+            htmlResultado += `</ul>`;
+
+            mostrarMensagem(htmlResultado, "sucesso");
+            document.getElementById('valorSaque').value = '';
+        }
+
+        function mostrarMensagem(mensagem, tipo) {
+            const divResultado = document.getElementById('resultado');
+            divResultado.style.display = "block";
+            divResultado.className = "resultado " + tipo;
+            divResultado.innerHTML = mensagem;
+        }
+    </script>
+
+</body>
+</html>
